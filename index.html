@@ -63,6 +63,31 @@
   const obstacles = [];
   function randRange(a,b){ return a + Math.random()*(b-a); }
 
+  // 레벨 맵 데이터 (장애물 위치 정의)
+  const levelMaps = {
+    level1: [
+      { x: 1000, type: 'spike' },
+      { x: 1400, type: 'spike' },
+      { x: 1700, type: 'spike' },
+      { x: 2200, type: 'spike' },
+      { x: 2500, type: 'spike' },
+      { x: 3000, type: 'spike' },
+      { x: 3200, type: 'spike' },
+      { x: 3700, type: 'spike' }
+    ],
+    level2: [
+      { x: 1000, type: 'spike' },
+      { x: 1200, type: 'spike' },
+      { x: 1600, type: 'spike' },
+      { x: 2000, type: 'spike' },
+      { x: 2150, type: 'spike' },
+      { x: 2600, type: 'spike' }
+    ]
+  };
+
+  let currentLevel = 'level1';
+  let levelProgress = 0; // 현재 레벨에서 몇 번째 장애물까지 스폰했는지
+
   let time = 0, last = performance.now(), score = 0, best = +localStorage.getItem('mini_dash_best')||0;
   const scoreEl = document.getElementById('score');
   const bestEl  = document.getElementById('best'); bestEl.textContent = best;
@@ -107,18 +132,38 @@
     player.alive = true;
     score = 0;
     time = 0;
-    // 첫 장애물 큐
-    spawnObstacle(W + 400);
+    levelProgress = 0; // 레벨 진행상황 초기화
   }
 
   // ====== 장애물 스폰 ======
   function nextGap(){ return randRange(obstacleGap[0], obstacleGap[1]); }
-  function spawnObstacle(x){
-    obstacles.push({ x, y: groundY - obstacleHeight, w: obstacleWidth, h: obstacleHeight, passed:false });
+  
+  function spawnObstacle(x, type = 'spike'){
+    let obstacleData = {
+      x, 
+      y: groundY - obstacleHeight, 
+      w: obstacleWidth, 
+      h: obstacleHeight, 
+      passed: false,
+      type: type
+    };
+    obstacles.push(obstacleData);
   }
 
-  // 초기 장애물
-  spawnObstacle(W + 500);
+  // 맵 기반 장애물 스폰
+  function spawnFromMap(){
+    const currentMap = levelMaps[currentLevel];
+    if(!currentMap || levelProgress >= currentMap.length) return;
+
+    const nextObstacle = currentMap[levelProgress];
+    const cameraX = time * speed; // 카메라 진행 위치
+    
+    // 다음 장애물이 스폰 범위에 들어왔는지 확인
+    if(nextObstacle.x - cameraX < W + 200){
+      spawnObstacle(nextObstacle.x, nextObstacle.type);
+      levelProgress++;
+    }
+  }
 
   // ====== 메인 루프 ======
   function loop(now){
@@ -154,11 +199,9 @@
     for(const o of obstacles){ o.x -= speed*dt; }
     // 지나간 것 제거
     while(obstacles.length && obstacles[0].x + obstacles[0].w < -100) obstacles.shift();
-    // 마지막 장애물 뒤가 비면 새로 생성
-    const lastObs = obstacles[obstacles.length-1];
-    if(lastObs && lastObs.x < W - nextGap()){
-      spawnObstacle(lastObs.x + randRange(obstacleGap[0], obstacleGap[1]));
-    }
+    
+    // 맵 기반 장애물 스폰
+    spawnFromMap();
 
     // 점수: 플레이어가 장애물을 지나칠 때 +1
     for(const o of obstacles){
