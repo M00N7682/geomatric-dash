@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mini Dash</title>
+  <style>
+    html, body { margin:0; padding:0; background:#111; color:#eee; font-family:system-ui; }
+    #ui { position:fixed; top:10px; left:10px; z-index:10; }
+    button { padding:8px 12px; margin-right:8px; }
+    canvas { display:block; width:100vw; height:60vh; margin:80px auto 0; max-width:900px; background:#161a22; border:1px solid #2a2f3a; }
+    .hud { max-width:900px; margin:8px auto; display:flex; justify-content:space-between; align-items:center; padding:0 6px; }
+  </style>
+</head>
+<body>
+  <div id="ui">
+    <button id="btnJump">JUMP (Space/Touch)</button>
+    <button id="btnRestart">Restart</button>
+  </div>
+  <canvas id="game" width="900" height="420"></canvas>
+  <div class="hud">
+    <div>Score: <span id="score">0</span></div>
+    <div>Best: <span id="best">0</span></div>
+  </div>
+
+  <script>
+  // ====== 기본 설정 ======
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  // 월드 스케일(픽셀), 중력/점프값은 러너 게임 느낌으로 조정
+  const gravity = 2000;    // px/s^2
+  const jumpVel = -800;    // px/s (위로)
+  const groundY = H - 60;  // 바닥 높이
+  const speed = 360;       // 맵 스크롤 속도(px/s)
+  const obstacleGap = [800, 1300]; // 장애물 간 최소/최대 간격(px)
+  const obstacleWidth = 40;
+  const obstacleHeight = 60;
+
+  // 플레이어 사각형
+  const player = {
+    x: 120, y: groundY - 40, w: 36, h: 36,
+    vy: 0, onGround: true, alive: true
+  };
+
+  // 배경(패럴랙스)
+  const layers = [
+    { color:'#0e1220', speed: 30,  offset:0, h: H },
+    { color:'#11162a', speed: 60,  offset:0, h: H*0.75 },
+    { color:'#151c34', speed: 120, offset:0, h: H*0.5 }
+  ];
+
+  // 장애물 관리
+  const obstacles = [];
+  function randRange(a,b){ return a + Math.random()*(b-a); }
+
+  let time = 0, last = performance.now(), score = 0, best = +localStorage.getItem('mini_dash_best')||0;
+  const scoreEl = document.getElementById('score');
+  const bestEl  = document.getElementById('best'); bestEl.textContent = best;
+
+  // ====== 유틸(충돌) ======
+  function rectsOverlap(a,b){
+    return !(a.x+a.w < b.x || b.x+b.w < a.x || a.y+a.h < b.y || b.y+b.h < a.y);
+  }
+
+  // ====== 입력 ======
+  let wantJump = false;
+  function jump(){
+    if(!player.alive) return;
+    if(player.onGround){
+      player.vy = jumpVel;
+      player.onGround = false;
+    }
+  }
+  document.addEventListener('keydown', e => { 
+    if(e.code === 'Space' || e.code==='ArrowUp') { 
+      wantJump = true; 
+      e.preventDefault(); 
+    }
+    if(e.code === 'KeyR') {
+      restart();
+      e.preventDefault();
+    }
+  });
+  document.addEventListener('keyup',   e => { if(e.code === 'Space' || e.code==='ArrowUp') wantJump = false; });
+  document.getElementById('btnJump').addEventListener('pointerdown', () => { wantJump = true; });
+  document.getElementById('btnJump').addEventListener('pointerup',   () => { wantJump = false; });
+  canvas.addEventListener('pointerdown', () => { wantJump = true; });
+  canvas.addEventListener('pointerup',   () => { wantJump = false; });
+  document.getElementById('btnRestart').onclick = restart;
+
+  // ====== 게임 재시작 ======
+  function restart(){
+    obstacles.length = 0;
+    player.y = groundY - player.h;
+    player.vy = 0;
+    player.onGround = true;
+    player.alive = true;
+    score = 0;
+    time = 0;
+    // 첫 장애물 큐
+    spawnObstacle(W + 400);
+  }
+
+  // ====== 장애물 스폰 ======
+  function nextGap(){ return randRange(obstacleGap[0], obstacleGap[1]); }
+  function spawnObstacle(x){
+    obstacles.push({ x, y: groundY - obstacleHeight, w: obstacleWidth, h: obstacleHeight, passed:false });
+  }
+
+  // 초기 장애물
+  spawnObstacle(W + 500);
+
+  // ====== 메인 루프 ======
+  function loop(now){
+    const dt = Math.min((now - last)/1000, 0.033); // 프레임 드랍 시 폭주 방지
+    last = now;
+    update(dt);
+    render();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  function update(dt){
+    if(!player.alive) return;
+
+    time += dt;
+
+    // 배경 패럴랙스 이동
+    for(const L of layers){ L.offset = (L.offset + L.speed*dt) % W; }
+
+    // 입력 처리
+    if(wantJump) jump();
+
+    // 플레이어 물리
+    player.vy += gravity*dt;
+    player.y  += player.vy*dt;
+    if(player.y + player.h >= groundY){
+      player.y = groundY - player.h;
+      player.vy = 0;
+      player.onGround = true;
+    }
+
+    // 장애물 이동/스폰
+    for(const o of obstacles){ o.x -= speed*dt; }
+    // 지나간 것 제거
+    while(obstacles.length && obstacles[0].x + obstacles[0].w < -100) obstacles.shift();
+    // 마지막 장애물 뒤가 비면 새로 생성
+    const lastObs = obstacles[obstacles.length-1];
+    if(lastObs && lastObs.x < W - nextGap()){
+      spawnObstacle(lastObs.x + randRange(obstacleGap[0], obstacleGap[1]));
+    }
+
+    // 점수: 플레이어가 장애물을 지나칠 때 +1
+    for(const o of obstacles){
+      if(!o.passed && o.x + o.w < player.x){
+        o.passed = true;
+        score++;
+        scoreEl.textContent = score;
+        if(score > best){ best = score; bestEl.textContent = best; localStorage.setItem('mini_dash_best', best); }
+      }
+    }
+
+    // 충돌 판정
+    for(const o of obstacles){
+      if(rectsOverlap(player, o)){
+        player.alive = false;
+      }
+    }
+  }
+
+  function render(){
+    // 배경
+    ctx.clearRect(0,0,W,H);
+    // 패럴랙스 레이어(단색 스트립)
+    let baseY = 0;
+    for(const L of layers){
+      ctx.fillStyle = L.color;
+      // 타일링
+      ctx.fillRect(-L.offset, baseY, W, L.h);
+      ctx.fillRect(W - L.offset, baseY, W, L.h);
+      baseY += (L.h * 0.05); // 미묘한 층간 오프셋
+    }
+
+    // 바닥 라인
+    ctx.strokeStyle = '#2e3850';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, groundY+0.5);
+    ctx.lineTo(W, groundY+0.5);
+    ctx.stroke();
+
+    // 장애물(스파이크 느낌의 직사각형)
+    for(const o of obstacles){
+      ctx.fillStyle = '#ff3b3b';
+      ctx.fillRect(o.x, o.y, o.w, o.h);
+    }
+
+    // 플레이어(큐브)
+    ctx.fillStyle = player.alive ? '#38d996' : '#777';
+    ctx.fillRect(player.x, player.y, player.w, player.h);
+
+    // 상태 텍스트
+    if(!player.alive){
+      ctx.fillStyle = '#eee';
+      ctx.font = '24px system-ui';
+      ctx.textAlign = 'center';
+      ctx.fillText('Game Over - Restart 버튼을 누르세요', W/2, H/2);
+    }
+  }
+  </script>
+</body>
+</html>
