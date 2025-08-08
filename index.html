@@ -44,6 +44,14 @@
     vy: 0, onGround: true, alive: true
   };
 
+  // 플레이어 이미지 로드
+  const playerImg = new Image();
+  playerImg.src = 'assets/me.png';
+  let playerImgLoaded = false;
+  playerImg.onload = () => {
+    playerImgLoaded = true;
+  };
+
   // 배경(패럴랙스)
   const layers = [
     { color:'#0e1220', speed: 30,  offset:0, h: H },
@@ -198,15 +206,21 @@
     }
 
     // 플레이어(큐브)
-    ctx.fillStyle = player.alive ? '#38d996' : '#777';
-    ctx.fillRect(player.x, player.y, player.w, player.h);
+    if(playerImgLoaded && player.alive){
+      // 이미지로 플레이어 그리기
+      ctx.drawImage(playerImg, player.x, player.y, player.w, player.h);
+    } else {
+      // 이미지 로딩 실패 시 또는 사망 시 기본 사각형
+      ctx.fillStyle = player.alive ? '#38d996' : '#777';
+      ctx.fillRect(player.x, player.y, player.w, player.h);
+    }
 
     // 상태 텍스트
     if(!player.alive){
       ctx.fillStyle = '#eee';
       ctx.font = '24px system-ui';
       ctx.textAlign = 'center';
-      ctx.fillText('Game Over - Restart 버튼을 누르세요', W/2, H/2);
+      ctx.fillText('Game Over - R키 또는 Restart 버튼을 누르세요', W/2, H/2);
     }
   }
   </script>
