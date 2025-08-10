@@ -1,6 +1,17 @@
 {
   "game": { "tickRate": 60, "gravity": 2200, "baseSpeed": 320, "speedGainPerSec": 6, "maxSpeed": 640 },
   "player": { "hitbox": { "w": 28, "h": 42 }, "jump": { "vy0": -720, "airControl": 0.15 } },
+  "obstacles": {
+    "spike": { "size": { "w": 32, "h": 32 }, "damage": 1, "deadly": true },
+    "saw": { "size": { "w": 40, "h": 40 }, "damage": 1, "deadly": true, "rotationSpeed": 360 },
+    "block": { "size": { "w": 48, "h": 48 }, "damage": 1, "deadly": true },
+    "moving_platform": { "size": { "w": 64, "h": 16 }, "damage": 0, "deadly": false }
+  },
+  "items": {
+    "coin": { "size": { "w": 24, "h": 24 }, "value": 10, "magnetRange": 50 },
+    "gem": { "size": { "w": 28, "h": 28 }, "value": 50, "magnetRange": 60 },
+    "star": { "size": { "w": 32, "h": 32 }, "value": 100, "magnetRange": 70 }
+  },
   "score": { "distanceUnit": 1.0, "coin": 10, "comboMultiplierPerTier": 0.2, "graceOnBuff": 0.2 },
   "powerups": {
     "shield": { "duration": 8, "keepCombo": true },
