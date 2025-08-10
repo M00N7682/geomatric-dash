@@ -46,10 +46,18 @@
 
   // 플레이어 이미지 로드
   const playerImg = new Image();
-  playerImg.src = 'assets/me.png';
+  playerImg.src = 'assets/player.png';
   let playerImgLoaded = false;
   playerImg.onload = () => {
     playerImgLoaded = true;
+  };
+
+  // 장애물 이미지 로드
+  const obstacleImg = new Image();
+  obstacleImg.src = 'assets/obstacle.png';
+  let obstacleImgLoaded = false;
+  obstacleImg.onload = () => {
+    obstacleImgLoaded = true;
   };
 
   // 배경(패럴랙스)
@@ -244,8 +252,14 @@
 
     // 장애물(스파이크 느낌의 직사각형)
     for(const o of obstacles){
-      ctx.fillStyle = '#ff3b3b';
-      ctx.fillRect(o.x, o.y, o.w, o.h);
+      if(obstacleImgLoaded){
+        // 이미지로 장애물 그리기
+        ctx.drawImage(obstacleImg, o.x, o.y, o.w, o.h);
+      } else {
+        // 이미지 로딩 실패 시 기본 빨간 사각형
+        ctx.fillStyle = '#ff3b3b';
+        ctx.fillRect(o.x, o.y, o.w, o.h);
+      }
     }
 
     // 플레이어(큐브)
