@@ -88,15 +88,8 @@ export class Player {
     
     console.log('🎨 Player sprite created with depth 200');
     
-    // Idle floating animation - less subtle for debugging
-    this.scene.tweens.add({
-      targets: this.sprite,
-      y: this.y - 5,
-      duration: 800,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.easeInOut'
-    });
+    // Remove floating animation to avoid conflicts with physics
+    // We'll handle all movement through physics updates
   }
 
   /**
@@ -116,6 +109,7 @@ export class Player {
     const gravity = (globalThis as any).gameConfig?.game?.gravity || 2200;
     if (!this.onGround) {
       this.velocityY += gravity * deltaSeconds;
+      console.log(`🌍 Applying gravity: velocityY = ${this.velocityY.toFixed(1)}`);
     }
     
     // Ground collision (simple)
@@ -130,6 +124,8 @@ export class Player {
         this.jumpCharges = 1;
         this.canDoubleJump = true;
       }
+      
+      console.log(`🌍 Player landed on ground at y=${this.y}`);
     } else {
       this.onGround = false;
     }
@@ -141,8 +137,13 @@ export class Player {
     }
     
     // Update position based on velocity
+    const oldY = this.y;
     this.x += this.velocityX * deltaSeconds;
     this.y += this.velocityY * deltaSeconds;
+    
+    if (Math.abs(oldY - this.y) > 1) {
+      console.log(`📍 Player moved from y=${oldY.toFixed(1)} to y=${this.y.toFixed(1)}, velocityY=${this.velocityY.toFixed(1)}`);
+    }
   }
 
   private updateAnimations(deltaSeconds: number): void {
@@ -211,17 +212,19 @@ export class Player {
   private performJump(): void {
     const jumpVelocity = this.config.jump.vy0 || -720;
     this.velocityY = jumpVelocity;
+    this.onGround = false; // Immediately set as not on ground
     
-    // Jump animation
+    console.log(`🦘 Jump performed! velocityY set to ${jumpVelocity}, y position: ${this.y}`);
+    
+    // Jump animation - quick squash and stretch
     this.scene.tweens.add({
       targets: this.sprite,
       scaleX: 1.1,
       scaleY: 0.9,
       duration: 100,
-      yoyo: true
+      yoyo: true,
+      ease: 'Power2'
     });
-    
-    console.log('🦘 Player jumped!');
   }
 
   /**

@@ -22,10 +22,27 @@ export class EntityFactory {
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
-    this.patterns = (globalThis as any).patterns || [];
+    const patternsData = (globalThis as any).patterns || {};
+    
+    // Convert patterns object to array with metadata
+    this.patterns = Object.entries(patternsData).map(([name, data]) => ({
+      name,
+      data,
+      difficulty: this.getDifficultyFromName(name)
+    }));
     
     this.initializePools();
     console.log('🏭 EntityFactory initialized with', this.patterns.length, 'patterns');
+  }
+
+  /**
+   * Extract difficulty from pattern name (easy_001 -> 1, mid_011 -> 2, hard_021 -> 3)
+   */
+  private getDifficultyFromName(name: string): number {
+    if (name.startsWith('easy_')) return 1;
+    if (name.startsWith('mid_')) return 2;
+    if (name.startsWith('hard_')) return 3;
+    return 1; // Default to easy
   }
 
   /**
@@ -139,40 +156,108 @@ export class EntityFactory {
     
     console.log('🌟 Spawning pattern:', pattern.name || 'unnamed');
     
-    // Spawn obstacles
-    if (pattern.obstacles) {
-      pattern.obstacles.forEach((obsData: any) => {
+    // Handle pattern data - it can be either the data array directly or have a data property
+    let patternData = pattern.data || pattern;
+    
+    if (!Array.isArray(patternData)) {
+      console.warn('⚠️ Pattern data is not an array:', patternData);
+      return;
+    }
+    
+    console.log('📦 Processing pattern data with', patternData.length, 'elements');
+    
+    // Process each element in the pattern
+    patternData.forEach((element: any, index: number) => {
+      const elementX = offsetX + (element.x || 0) * 50; // Scale up coordinates
+      const elementY = offsetY + (element.y || 0) * 50;
+      
+      console.log(`🔧 Processing element ${index}:`, element.type, 'at', elementX, elementY);
+      
+      // Determine if this is an obstacle or item based on type
+      if (this.isObstacleType(element.type)) {
         this.spawnObstacle(
-          obsData.type || 'spike',
-          offsetX + (obsData.x || 0),
-          offsetY + (obsData.y || 0),
-          obsData
+          this.mapToObstacleType(element.type),
+          elementX,
+          elementY + 500, // Ground level
+          element
         );
-      });
-    }
-    
-    // Spawn items
-    if (pattern.items) {
-      pattern.items.forEach((itemData: any) => {
+      } else if (this.isItemType(element.type)) {
         this.spawnItem(
-          itemData.type || 'coin',
-          offsetX + (itemData.x || 0),
-          offsetY + (itemData.y || 0),
-          itemData
+          this.mapToItemType(element.type),
+          elementX,
+          elementY + 400, // Above ground
+          element
         );
-      });
-    }
+      } else {
+        console.log('❓ Unknown element type:', element.type);
+      }
+    });
+  }
+
+  /**
+   * Check if type is an obstacle
+   */
+  private isObstacleType(type: string): boolean {
+    const obstacleTypes = [
+      'spike_low', 'spike_high', 'spike', 'saw', 'block', 
+      'moving_obstacle', 'falling_platform'
+    ];
+    return obstacleTypes.includes(type);
+  }
+
+  /**
+   * Check if type is an item
+   */
+  private isItemType(type: string): boolean {
+    const itemTypes = [
+      'coin_arc', 'coin_line', 'coin_wave', 'coin',
+      'gem', 'star', 'spring', 'magnet_item', 'dash_item'
+    ];
+    return itemTypes.includes(type);
+  }
+
+  /**
+   * Map pattern type to obstacle type
+   */
+  private mapToObstacleType(type: string): string {
+    const mapping: { [key: string]: string } = {
+      'spike_low': 'spike',
+      'spike_high': 'spike',
+      'spike': 'spike',
+      'saw': 'saw',
+      'block': 'block',
+      'moving_obstacle': 'spike',
+      'falling_platform': 'block'
+    };
     
-    // Handle special pattern properties
-    if (pattern.movement) {
-      this.applyPatternMovement(pattern.movement, offsetX, offsetY);
-    }
+    return mapping[type] || 'spike';
+  }
+
+  /**
+   * Map pattern type to item type
+   */
+  private mapToItemType(type: string): string {
+    const mapping: { [key: string]: string } = {
+      'coin_arc': 'coin',
+      'coin_line': 'coin',
+      'coin_wave': 'coin',
+      'coin': 'coin',
+      'gem': 'gem',
+      'star': 'star',
+      'spring': 'coin', // Temporary mapping
+      'magnet_item': 'gem',
+      'dash_item': 'star'
+    };
+    
+    return mapping[type] || 'coin';
   }
 
   /**
    * Spawn an obstacle using object pooling
    */
   spawnObstacle(type: string, x: number, y: number, data: any = {}): Obstacle | null {
+    console.log(`🔺 Attempting to spawn obstacle: ${type} at (${x}, ${y})`);
+    
     // Try to get from pool
     let obstacle = this.obstaclePool.find(obs => !obs.isActive);
     
@@ -185,7 +270,12 @@ export class EntityFactory {
       obstacle.x = x;
       obstacle.y = y;
       obstacle.obstacleType = type;
+      
+      // Reset visual position
+      obstacle.sprite.setPosition(x, y);
       obstacle.setActive(true);
+      
+      console.log(`♻️ Reused obstacle from pool: ${type} at (${x}, ${y})`);
     }
     
     // Apply data properties
@@ -197,7 +287,13 @@ export class EntityFactory {
       obstacle.setVelocity(data.velocity.x || 0, data.velocity.y || 0);
     }
     
+    // Make sure obstacle is visible and at correct depth
+    obstacle.sprite.setVisible(true);
+    obstacle.sprite.setDepth(50);
+    
     this.activeObstacles.push(obstacle);
+    console.log(`✅ Obstacle spawned successfully. Active count: ${this.activeObstacles.length}`);
+    
     return obstacle;
   }
 
@@ -228,27 +324,6 @@ export class EntityFactory {
     
     this.activeItems.push(item);
     return item;
-  }
-
-  /**
-   * Apply movement patterns to recently spawned entities
-   */
-  private applyPatternMovement(movement: any, offsetX: number, _offsetY: number): void {
-    if (movement.type === 'wave') {
-      // Apply wave movement to all active obstacles in this pattern
-      const recentObstacles = this.activeObstacles.slice(-10); // Last 10 obstacles
-      
-      recentObstacles.forEach((obstacle, index) => {
-        this.scene.tweens.add({
-          targets: obstacle,
-          y: obstacle.y + Math.sin((offsetX + index * 50) * 0.01) * (movement.amplitude || 50),
-          duration: movement.duration || 2000,
-          yoyo: true,
-          repeat: -1,
-          ease: 'Sine.easeInOut'
-        });
-      });
-    }
   }
 
   /**

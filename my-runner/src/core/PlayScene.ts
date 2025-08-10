@@ -128,6 +128,19 @@ export class PlayScene extends Phaser.Scene implements State {
     this.player = this.entityFactory.createPlayer(150, 450);
     console.log('🎯 Actual player created at (150, 450)');
 
+    // Test: Create some obstacles manually for debugging
+    console.log('🔧 Creating test obstacles...');
+    this.entityFactory.spawnObstacle('spike', 400, 500);
+    this.entityFactory.spawnObstacle('saw', 600, 450);
+    this.entityFactory.spawnObstacle('block', 800, 480);
+    
+    // Test: Create some items
+    console.log('🔧 Creating test items...');
+    this.entityFactory.spawnItem('coin', 350, 400);
+    this.entityFactory.spawnItem('gem', 550, 350);
+    
+    console.log('🔧 Manual test entities created');
+
     // Display config info
     this.add.text(10, 10, `Gravity: ${config?.game?.gravity || 'Default'}`, {
       fontSize: '12px',
