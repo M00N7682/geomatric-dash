@@ -59,13 +59,13 @@ export class Player {
     // Create container for all visual elements
     this.sprite = this.scene.add.container(this.x, this.y);
     
-    // Main sprite (cube with geometric design)
-    const mainRect = this.scene.add.rectangle(0, 0, this.config.hitbox.w, this.config.hitbox.h, 0x38d996);
-    mainRect.setStrokeStyle(2, 0x2ea876);
+    // Main sprite (cube with geometric design) - Make it more visible
+    const mainRect = this.scene.add.rectangle(0, 0, this.config.hitbox.w, this.config.hitbox.h, 0x44aaff);
+    mainRect.setStrokeStyle(3, 0xffffff);
     
     // Add geometric details
-    const innerSquare = this.scene.add.rectangle(0, 0, this.config.hitbox.w - 8, this.config.hitbox.h - 8, 0x4bffaa);
-    innerSquare.setStrokeStyle(1, 0x38d996);
+    const innerSquare = this.scene.add.rectangle(0, 0, this.config.hitbox.w - 8, this.config.hitbox.h - 8, 0x88ccff);
+    innerSquare.setStrokeStyle(2, 0x44aaff);
     
     // Add corner accents
     const corners = [
@@ -73,11 +73,15 @@ export class Player {
     ];
     
     corners.forEach(([offsetX, offsetY]) => {
-      const corner = this.scene.add.rectangle(offsetX, offsetY, 4, 4, 0xffffff);
+      const corner = this.scene.add.rectangle(offsetX, offsetY, 6, 6, 0xffffff);
       this.sprite.add(corner);
     });
     
     this.sprite.add([mainRect, innerSquare]);
+    
+    // Ensure visibility
+    this.sprite.setVisible(true);
+    this.sprite.setDepth(100);
     
     // Idle floating animation
     this.scene.tweens.add({
