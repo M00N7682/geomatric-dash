@@ -204,8 +204,8 @@ export class MenuScene extends Phaser.Scene implements State {
     });
 
     // Stats display
-    const config = (globalThis as any).GameConfig;
-    const patterns = (globalThis as any).Patterns;
+    const config = (globalThis as any).gameConfig;
+    const patterns = (globalThis as any).patterns;
     
     if (config && patterns) {
       this.add.text(400, 420, `✅ Config loaded - ${Object.keys(patterns).length} patterns ready`, {

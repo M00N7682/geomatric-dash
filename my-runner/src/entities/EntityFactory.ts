@@ -23,7 +23,7 @@ export class EntityFactory {
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
-    this.patterns = (globalThis as any).Patterns || [];
+    this.patterns = (globalThis as any).patterns || [];
     
     this.initializePools();
     console.log('🏭 EntityFactory initialized with', this.patterns.length, 'patterns');

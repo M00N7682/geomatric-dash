@@ -24,7 +24,7 @@ export class CameraManager {
     this.camera = scene.cameras.main;
     
     // Get camera configuration
-    this.config = (globalThis as any).GameConfig?.camera || {
+    this.config = (globalThis as any).gameConfig?.camera || {
       smoothFollow: 0.05,
       offsetX: -200,
       offsetY: 0,

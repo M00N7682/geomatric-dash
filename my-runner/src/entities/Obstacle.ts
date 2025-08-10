@@ -28,7 +28,7 @@ export class Obstacle {
     this.obstacleType = type;
     
     // Get configuration
-    this.config = (globalThis as any).GameConfig?.obstacles?.[type] || {
+    this.config = (globalThis as any).gameConfig?.obstacles?.[type] || {
       size: { w: 32, h: 32 },
       damage: 1,
       deadly: true

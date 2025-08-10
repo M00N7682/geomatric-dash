@@ -108,8 +108,8 @@ export class PlayScene extends Phaser.Scene implements State {
   }
 
   private setupGame(): void {
-    const config = (globalThis as any).GameConfig;
-    const patterns = (globalThis as any).Patterns;
+    const config = (globalThis as any).gameConfig;
+    const patterns = (globalThis as any).patterns;
 
     // Initialize entity factory
     this.entityFactory = new EntityFactory(this);
@@ -244,7 +244,7 @@ export class PlayScene extends Phaser.Scene implements State {
     this.gameState.distance += this.gameState.speed * deltaSeconds / 100; // Convert to meters
     
     // Increase speed over time
-    const config = (globalThis as any).GameConfig;
+    const config = (globalThis as any).gameConfig;
     if (config?.game?.speedGainPerSec) {
       this.gameState.speed = Math.min(
         this.gameState.speed + config.game.speedGainPerSec * deltaSeconds,

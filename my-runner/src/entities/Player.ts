@@ -45,7 +45,7 @@ export class Player {
     this.y = y;
     
     // Get configuration
-    this.config = (globalThis as any).GameConfig?.player || {
+    this.config = (globalThis as any).gameConfig?.player || {
       hitbox: { w: 28, h: 42 },
       jump: { vy0: -720, airControl: 0.15 }
     };
@@ -104,7 +104,7 @@ export class Player {
 
   private updatePhysics(deltaSeconds: number): void {
     // Simple gravity
-    const gravity = (globalThis as any).GameConfig?.game?.gravity || 2200;
+    const gravity = (globalThis as any).gameConfig?.game?.gravity || 2200;
     if (!this.onGround) {
       this.velocityY += gravity * deltaSeconds;
     }

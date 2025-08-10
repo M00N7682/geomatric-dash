@@ -1,4 +1,4 @@
-import { GameConfig, PatternsMap } from './types';
+import type { GameConfig, PatternsMap } from './types';
 
 /**
  * Configuration loader with validation and fallback support
@@ -235,25 +235,25 @@ export class ConfigLoader {
 }
 
 // Global config storage
-export let GameConfig: GameConfig;
-export let Patterns: PatternsMap;
+export let gameConfig: GameConfig;
+export let patterns: PatternsMap;
 
 /**
  * Initialize global configuration
  */
 export async function initializeConfig(): Promise<void> {
-  const [gameConfig, patterns] = await Promise.all([
+  const [loadedGameConfig, loadedPatterns] = await Promise.all([
     ConfigLoader.loadGameConfig(),
     ConfigLoader.loadPatterns()
   ]);
 
   // Store globally
-  (globalThis as any).GameConfig = gameConfig;
-  (globalThis as any).Patterns = patterns;
+  (globalThis as any).gameConfig = loadedGameConfig;
+  (globalThis as any).patterns = loadedPatterns;
   
   // Export for modules
-  GameConfig = gameConfig;
-  Patterns = patterns;
+  gameConfig = loadedGameConfig;
+  patterns = loadedPatterns;
 
   console.log('🎮 Global configuration initialized');
 }

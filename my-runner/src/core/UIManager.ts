@@ -35,7 +35,7 @@ export class UIManager {
     this.scene = scene;
     this.progressManager = progressManager;
     
-    this.config = (globalThis as any).GameConfig?.ui || {
+    this.config = (globalThis as any).gameConfig?.ui || {
       fontSize: {
         small: '14px',
         medium: '18px',

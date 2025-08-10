@@ -30,7 +30,7 @@ export class Item {
     this.itemType = type;
     
     // Get configuration
-    this.config = (globalThis as any).GameConfig?.items?.[type] || {
+    this.config = (globalThis as any).gameConfig?.items?.[type] || {
       size: { w: 24, h: 24 },
       value: 1,
       effect: null
