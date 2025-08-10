@@ -110,17 +110,23 @@ export class PlayScene extends Phaser.Scene implements State {
     const config = (globalThis as any).gameConfig;
     const patterns = (globalThis as any).patterns;
 
-    // Initialize entity factory
-    this.entityFactory = new EntityFactory(this);
-    
-    // Create player
-    this.player = this.entityFactory.createPlayer(100, 450);
-    
-    // Display game area
+    // Display game area first
     this.add.rectangle(512, 288, 1024, 576, 0x161a22);
     
     // Ground line
     this.add.line(512, 500, 0, 0, 1024, 0, 0x2e3850, 1).setLineWidth(2);
+
+    // Create a simple visible player first (for testing)
+    const testPlayer = this.add.rectangle(100, 450, 32, 32, 0xff0000);
+    testPlayer.setStrokeStyle(3, 0xffffff);
+    console.log('🔴 Test player created at (100, 450)');
+
+    // Initialize entity factory
+    this.entityFactory = new EntityFactory(this);
+    
+    // Create actual player
+    this.player = this.entityFactory.createPlayer(150, 450);
+    console.log('🎯 Actual player created at (150, 450)');
 
     // Display config info
     this.add.text(10, 10, `Gravity: ${config?.game?.gravity || 'Default'}`, {
@@ -388,8 +394,19 @@ export class PlayScene extends Phaser.Scene implements State {
   }
 
   private handleJump(): void {
-    if (this.gameState.paused) return;
+    console.log('🎮 Jump key pressed!');
     
+    if (this.gameState.paused) {
+      console.log('🎮 Jump blocked - game is paused');
+      return;
+    }
+    
+    if (!this.player) {
+      console.log('🎮 Jump failed - player not found!');
+      return;
+    }
+    
+    console.log('🎮 Attempting player jump...');
     if (this.player.jump()) {
       // Record jump for statistics
       this.progressManager.recordJump();
@@ -400,7 +417,9 @@ export class PlayScene extends Phaser.Scene implements State {
       // Small camera shake
       this.cameraManager.shake(3, 100);
       
-      console.log('🦘 Player jumped!');
+      console.log('🦘 Player jumped successfully!');
+    } else {
+      console.log('🦘 Player jump failed!');
     }
   }
   

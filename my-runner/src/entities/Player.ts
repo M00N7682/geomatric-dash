@@ -26,16 +26,16 @@ export class Player {
   private invulnerable: boolean = false;
   private invulnerabilityTimer: number = 0;
   
-  // Abilities
+  // Abilities - Enable all abilities by default for testing
   private abilities: {
     doubleJump: boolean;
     dash: boolean;
     slide: boolean;
     giant: boolean;
   } = {
-    doubleJump: false,
-    dash: false,
-    slide: false,
+    doubleJump: true,
+    dash: true,
+    slide: true,
     giant: false
   };
 
@@ -56,12 +56,14 @@ export class Player {
   }
 
   private setupVisuals(): void {
+    console.log('🎨 Setting up player visuals at:', this.x, this.y);
+    
     // Create container for all visual elements
     this.sprite = this.scene.add.container(this.x, this.y);
     
-    // Main sprite (cube with geometric design) - Make it more visible
+    // Main sprite (cube with geometric design) - Make it very visible
     const mainRect = this.scene.add.rectangle(0, 0, this.config.hitbox.w, this.config.hitbox.h, 0x44aaff);
-    mainRect.setStrokeStyle(3, 0xffffff);
+    mainRect.setStrokeStyle(4, 0xffffff);
     
     // Add geometric details
     const innerSquare = this.scene.add.rectangle(0, 0, this.config.hitbox.w - 8, this.config.hitbox.h - 8, 0x88ccff);
@@ -79,15 +81,18 @@ export class Player {
     
     this.sprite.add([mainRect, innerSquare]);
     
-    // Ensure visibility
+    // Ensure maximum visibility
     this.sprite.setVisible(true);
-    this.sprite.setDepth(100);
+    this.sprite.setDepth(200); // Higher depth than test player
+    this.sprite.setAlpha(1);
     
-    // Idle floating animation
+    console.log('🎨 Player sprite created with depth 200');
+    
+    // Idle floating animation - less subtle for debugging
     this.scene.tweens.add({
       targets: this.sprite,
-      y: this.y - 2,
-      duration: 1000,
+      y: this.y - 5,
+      duration: 800,
       yoyo: true,
       repeat: -1,
       ease: 'Sine.easeInOut'
@@ -183,17 +188,23 @@ export class Player {
    * Attempt to jump
    */
   jump(): boolean {
-    if (this.canJump && this.onGround) {
+    console.log('🦘 Jump attempted - onGround:', this.onGround, 'canJump:', this.canJump);
+    
+    // Always allow jump if on ground (simplified logic for debugging)
+    if (this.onGround) {
       this.performJump();
-      this.canJump = false;
+      this.onGround = false; // Make sure player leaves ground
+      console.log('🦘 Jump executed successfully!');
       return true;
-    } else if (this.canDoubleJump && !this.onGround && this.jumpCharges > 0) {
+    } else if (this.canDoubleJump && this.jumpCharges > 0) {
       this.performJump();
       this.jumpCharges--;
       this.canDoubleJump = this.jumpCharges > 0;
+      console.log('🦘 Double jump executed!');
       return true;
     }
     
+    console.log('🦘 Jump failed - conditions not met');
     return false;
   }
 
