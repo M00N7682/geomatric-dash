@@ -381,16 +381,9 @@ export class PlayScene extends Phaser.Scene implements State {
   }
 
   private updateUI(): void {
-    // Update score
-    const scoreText = this.children.getAt(6) as Phaser.GameObjects.Text;
-    if (scoreText) {
-      scoreText.setText(this.gameState.score.toString());
-    }
-
-    // Update distance
-    const distanceText = this.children.getAt(8) as Phaser.GameObjects.Text;
-    if (distanceText) {
-      distanceText.setText(`${this.gameState.distance.toFixed(1)}m`);
+    // Use UIManager to update UI
+    if (this.uiManager) {
+      this.uiManager.update(this.gameState);
     }
   }
 
