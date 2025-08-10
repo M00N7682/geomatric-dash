@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geometric Dash - Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #0e1220 0%, #11162a 50%, #151c34 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        #app {
+            text-align: center;
+        }
+        #game {
+            border: 1px solid #2a2f3a;
+            border-radius: 4px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <canvas id="game" width="800" height="600"></canvas>
+    </div>
+
+    <script type="module">
+        // Import from CDN for quick testing
+        import Phaser from 'https://cdn.skypack.dev/phaser@3.70.0';
+
+        console.log('🚀 Starting Geometric Dash State Machine Test...');
+
+        // Simple state machine implementation for testing
+        class StateMachine {
+            constructor() {
+                this.states = new Map();
+                this.stateStack = [];
+                this.currentState = null;
+                this.currentStateName = null;
+            }
+
+            addState(name, state) {
+                this.states.set(name, state);
+                console.log(`📋 State registered: ${name}`);
+            }
+
+            pushState(name, data) {
+                const state = this.states.get(name);
+                if (!state) return false;
+
+                if (this.currentState && this.currentState.pause) {
+                    this.currentState.pause();
+                }
+
+                if (this.currentStateName) {
+                    this.stateStack.push(this.currentStateName);
+                }
+
+                this.currentState = state;
+                this.currentStateName = name;
+                state.enter(data);
+                console.log(`🔄 State push: -> ${name}`);
+                return true;
+            }
+
+            replaceState(name, data) {
+                const state = this.states.get(name);
+                if (!state) return false;
+
+                if (this.currentState) {
+                    this.currentState.exit();
+                }
+
+                this.currentState = state;
+                this.currentStateName = name;
+                state.enter(data);
+                console.log(`� State replace: -> ${name}`);
+                return true;
+            }
+
+            popState() {
+                if (this.stateStack.length === 0) return false;
+
+                if (this.currentState) {
+                    this.currentState.exit();
+                }
+
+                const previousStateName = this.stateStack.pop();
+                const previousState = this.states.get(previousStateName);
+
+                this.currentState = previousState;
+                this.currentStateName = previousStateName;
+
+                if (previousState.resume) {
+                    previousState.resume();
+                }
+
+                console.log(`🔄 State pop: -> ${previousStateName}`);
+                return true;
+            }
+
+            update(time, delta) {
+                if (this.currentState) {
+                    this.currentState.update(time, delta);
+                }
+            }
+
+            getCurrentState() {
+                return this.currentStateName;
+            }
+        }
+
+        // Configuration loader
+        class ConfigLoader {
+            static async loadGameConfig() {
+                try {
+                    const response = await fetch('./src/config/gameConfig.json');
+                    if (!response.ok) throw new Error('Config not found');
+                    const data = await response.json();
+                    console.log('✅ Game config loaded:', data.game);
+                    return data;
+                } catch (error) {
+                    console.warn('⚠️ Using default config:', error.message);
+                    return {
+                        game: { tickRate: 60, gravity: 2200, baseSpeed: 320, speedGainPerSec: 6, maxSpeed: 640 },
+                        player: { hitbox: { w: 28, h: 42 }, jump: { vy0: -720, airControl: 0.15 } }
+                    };
+                }
+            }
+
+            static async loadPatterns() {
+                try {
+                    const response = await fetch('./src/config/patterns.json');
+                    if (!response.ok) throw new Error('Patterns not found');
+                    const data = await response.json();
+                    console.log(`✅ Patterns loaded: ${Object.keys(data).length} patterns`);
+                    return data;
+                } catch (error) {
+                    console.warn('⚠️ Using default patterns:', error.message);
+                    return {
+                        'easy_001': [
+                            { type: 'ground', x: 0, w: 8 },
+                            { type: 'coin_arc', x: 3, y: -2, n: 5 }
+                        ]
+                    };
+                }
+            }
+        }
+
+        // Boot scene
+        class BootScene extends Phaser.Scene {
+            constructor() {
+                super({ key: 'BootScene' });
+            }
+
+            preload() {
+                this.add.text(400, 250, 'Loading Geometric Dash...', {
+                    fontSize: '24px',
+                    color: '#ffffff'
+                }).setOrigin(0.5);
+
+                this.add.text(400, 300, 'Initializing state machine...', {
+                    fontSize: '16px',
+                    color: '#aaaaaa'
+                }).setOrigin(0.5);
+            }
+
+            async create() {
+                try {
+                    const [gameConfig, patterns] = await Promise.all([
+                        ConfigLoader.loadGameConfig(),
+                        ConfigLoader.loadPatterns()
+                    ]);
+
+                    window.GameConfig = gameConfig;
+                    window.Patterns = patterns;
+
+                    console.log('🎮 Configuration initialized');
+                    
+                    // Transition to menu
+                    this.time.delayedCall(1000, () => {
+                        this.scene.start('MenuScene');
+                    });
+
+                } catch (error) {
+                    console.error('❌ Failed to initialize:', error);
+                    this.add.text(400, 350, 'Failed to load configuration', {
+                        fontSize: '16px',
+                        color: '#ff6666'
+                    }).setOrigin(0.5);
+                }
+            }
+        }
+
+        // Menu scene
+        class MenuScene extends Phaser.Scene {
+            constructor() {
+                super({ key: 'MenuScene' });
+            }
+
+            create() {
+                this.add.text(400, 150, 'GEOMETRIC DASH', {
+                    fontSize: '36px',
+                    color: '#ffffff'
+                }).setOrigin(0.5);
+
+                this.add.text(400, 200, 'State Machine Demo', {
+                    fontSize: '16px',
+                    color: '#888888'
+                }).setOrigin(0.5);
+
+                const playBtn = this.add.text(400, 280, 'PLAY', {
+                    fontSize: '24px',
+                    color: '#00ff88',
+                    backgroundColor: '#1a4d3a',
+                    padding: { x: 40, y: 15 }
+                }).setOrigin(0.5).setInteractive();
+
+                playBtn.on('pointerdown', () => {
+                    this.scene.start('PlayScene');
+                });
+
+                this.add.text(400, 350, 'Press SPACE to start', {
+                    fontSize: '14px',
+                    color: '#666666'
+                }).setOrigin(0.5);
+
+                this.input.keyboard.addKey('SPACE').on('down', () => {
+                    this.scene.start('PlayScene');
+                });
+            }
+        }
+
+        // Play scene with state machine
+        class PlayScene extends Phaser.Scene {
+            constructor() {
+                super({ key: 'PlayScene' });
+                this.stateMachine = new StateMachine();
+                this.gameState = {
+                    score: 0,
+                    paused: false,
+                    speed: 320
+                };
+            }
+
+            create() {
+                this.setupGame();
+                this.setupStateMachine();
+                this.setupInput();
+            }
+
+            setupGame() {
+                this.add.text(400, 100, 'GEOMETRIC DASH', {
+                    fontSize: '32px',
+                    color: '#ffffff'
+                }).setOrigin(0.5);
+
+                this.add.text(400, 150, 'State Machine Active', {
+                    fontSize: '16px',
+                    color: '#00ff88'
+                }).setOrigin(0.5);
+
+                // Game area
+                this.add.rectangle(400, 350, 760, 200, 0x1a1a1a);
+                this.add.line(400, 450, 0, 0, 760, 0, 0x00ff88, 1);
+
+                // Player
+                this.player = this.add.rectangle(100, 420, 30, 30, 0x00ff88);
+
+                // UI
+                this.scoreText = this.add.text(700, 20, 'Score: 0', {
+                    fontSize: '16px',
+                    color: '#ffffff'
+                });
+
+                this.stateText = this.add.text(20, 20, 'State: playing', {
+                    fontSize: '14px',
+                    color: '#888888'
+                });
+
+                this.add.text(400, 550, 'SPACE: Jump • P/ESC: Pause • R: Restart', {
+                    fontSize: '12px',
+                    color: '#666666'
+                }).setOrigin(0.5);
+            }
+
+            setupStateMachine() {
+                this.stateMachine.addState('playing', {
+                    enter: () => {
+                        console.log('▶️ Entered playing state');
+                        this.gameState.paused = false;
+                        this.stateText.setText('State: playing');
+                        this.stateText.setColor('#00ff88');
+                    },
+                    exit: () => console.log('⏸️ Exited playing state'),
+                    update: () => {
+                        if (!this.gameState.paused) {
+                            this.gameState.score += 1;
+                            this.scoreText.setText(`Score: ${this.gameState.score}`);
+                        }
+                    }
+                });
+
+                this.stateMachine.addState('paused', {
+                    enter: () => {
+                        console.log('⏸️ Entered paused state');
+                        this.gameState.paused = true;
+                        this.stateText.setText('State: paused');
+                        this.stateText.setColor('#ffaa00');
+                    },
+                    exit: () => console.log('▶️ Exited paused state'),
+                    update: () => { /* No updates while paused */ }
+                });
+
+                this.stateMachine.replaceState('playing');
+            }
+
+            setupInput() {
+                this.input.keyboard.addKey('SPACE').on('down', () => {
+                    if (!this.gameState.paused) {
+                        console.log('🦘 Jump!');
+                        // Simple jump animation
+                        this.tweens.add({
+                            targets: this.player,
+                            y: 380,
+                            duration: 200,
+                            yoyo: true
+                        });
+                    }
+                });
+
+                this.input.keyboard.addKey('P').on('down', () => {
+                    this.togglePause();
+                });
+
+                this.input.keyboard.addKey('ESC').on('down', () => {
+                    if (this.gameState.paused) {
+                        this.togglePause();
+                    } else {
+                        this.scene.launch('PauseScene');
+                        this.stateMachine.pushState('paused');
+                    }
+                });
+
+                this.input.keyboard.addKey('R').on('down', () => {
+                    this.scene.restart();
+                });
+            }
+
+            togglePause() {
+                if (this.stateMachine.getCurrentState() === 'playing') {
+                    this.stateMachine.replaceState('paused');
+                } else {
+                    this.stateMachine.replaceState('playing');
+                }
+            }
+
+            update(time, delta) {
+                this.stateMachine.update(time, delta);
+            }
+        }
+
+        // Pause scene
+        class PauseScene extends Phaser.Scene {
+            constructor() {
+                super({ key: 'PauseScene' });
+            }
+
+            create() {
+                this.add.rectangle(400, 300, 800, 600, 0x000000, 0.8);
+                
+                this.add.text(400, 200, 'PAUSED', {
+                    fontSize: '48px',
+                    color: '#ffffff'
+                }).setOrigin(0.5);
+
+                this.add.text(400, 280, 'Press ESC to resume', {
+                    fontSize: '16px',
+                    color: '#aaaaaa'
+                }).setOrigin(0.5);
+
+                this.input.keyboard.addKey('ESC').on('down', () => {
+                    this.scene.stop();
+                });
+            }
+        }
+
+        // Game configuration
+        const gameConfig = {
+            type: Phaser.AUTO,
+            width: 800,
+            height: 600,
+            parent: 'app',
+            backgroundColor: '#161a22',
+            scene: [BootScene, MenuScene, PlayScene, PauseScene],
+            scale: {
+                mode: Phaser.Scale.FIT,
+                autoCenter: Phaser.Scale.CENTER_BOTH
+            }
+        };
+
+        // Start the game
+        const game = new Phaser.Game(gameConfig);
+        window.game = game;
+
+        console.log('🎮 State Machine Demo initialized!');
+    </script>
+</body>
+</html>

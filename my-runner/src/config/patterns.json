@@ -1,0 +1,104 @@
+{
+  "easy_001": [
+    { "type": "ground", "x": 0, "w": 8 },
+    { "type": "coin_arc", "x": 3, "y": -2, "n": 5 }
+  ],
+  "easy_002": [
+    { "type": "ground", "x": 0, "w": 10 },
+    { "type": "coin_line", "x": 4, "y": -1, "n": 4 }
+  ],
+  "easy_003": [
+    { "type": "ground", "x": 0, "w": 7 },
+    { "type": "spring", "x": 3, "power": 1.1 },
+    { "type": "coin_arc", "x": 4, "y": -3, "n": 6 }
+  ],
+  "easy_004": [
+    { "type": "ground", "x": 0, "w": 6 },
+    { "type": "spike_low", "x": 5 },
+    { "type": "coin_line", "x": 2, "y": -1, "n": 3 }
+  ],
+  "easy_005": [
+    { "type": "ground", "x": 0, "w": 5 },
+    { "type": "gap", "x": 6, "w": 1 },
+    { "type": "ground", "x": 7, "w": 5 }
+  ],
+  "easy_006": [
+    { "type": "ground", "x": 0, "w": 8 },
+    { "type": "magnet_item", "x": 6 }
+  ],
+
+  "mid_011": [
+    { "type": "ground", "x": 0, "w": 6 },
+    { "type": "spike_low", "x": 4 },
+    { "type": "coin_line", "x": 5, "y": -2, "n": 4 }
+  ],
+  "mid_012": [
+    { "type": "gap", "x": 3, "w": 2 },
+    { "type": "ground", "x": 5, "w": 6 },
+    { "type": "coin_arc", "x": 6, "y": -2, "n": 5 }
+  ],
+  "mid_013": [
+    { "type": "ground", "x": 0, "w": 5 },
+    { "type": "moving_obstacle", "x": 6, "y": -1, "amp": 2, "period": 1.2 }
+  ],
+  "mid_014": [
+    { "type": "falling_platform", "x": 3, "w": 2, "delay": 0.4 },
+    { "type": "ground", "x": 5, "w": 5 },
+    { "type": "coin_line", "x": 6, "y": -1, "n": 3 }
+  ],
+  "mid_015": [
+    { "type": "ground", "x": 0, "w": 4 },
+    { "type": "spike_high", "x": 5 },
+    { "type": "spring", "x": 4, "power": 1.2 },
+    { "type": "coin_arc", "x": 6, "y": -3, "n": 6 }
+  ],
+  "mid_016": [
+    { "type": "ground", "x": 0, "w": 3 },
+    { "type": "gap", "x": 4, "w": 2 },
+    { "type": "moving_obstacle", "x": 7, "y": -2, "amp": 1, "period": 1.0 }
+  ],
+  "mid_017": [
+    { "type": "ground", "x": 0, "w": 6 },
+    { "type": "coin_wave", "x": 2, "y": -1, "n": 6, "amp": 2 }
+  ],
+  "mid_018": [
+    { "type": "ground", "x": 0, "w": 5 },
+    { "type": "dash_item", "x": 5 },
+    { "type": "spike_low", "x": 7 }
+  ],
+
+  "hard_021": [
+    { "type": "gap", "x": 3, "w": 3 },
+    { "type": "moving_obstacle", "x": 7, "y": -2, "amp": 2.5, "period": 0.9 }
+  ],
+  "hard_022": [
+    { "type": "falling_platform", "x": 2, "w": 2, "delay": 0.3 },
+    { "type": "gap", "x": 5, "w": 2 },
+    { "type": "coin_line", "x": 7, "y": -2, "n": 4 }
+  ],
+  "hard_023": [
+    { "type": "ground", "x": 0, "w": 4 },
+    { "type": "spike_low", "x": 5 },
+    { "type": "spike_high", "x": 6 },
+    { "type": "moving_obstacle", "x": 8, "y": -1, "amp": 1.5, "period": 1.1 }
+  ],
+  "hard_024": [
+    { "type": "ground", "x": 0, "w": 3 },
+    { "type": "spring", "x": 3, "power": 1.25 },
+    { "type": "gap", "x": 5, "w": 3 },
+    { "type": "coin_arc", "x": 6, "y": -4, "n": 6 }
+  ],
+  "hard_025": [
+    { "type": "ground", "x": 0, "w": 2 },
+    { "type": "gap", "x": 3, "w": 2 },
+    { "type": "falling_platform", "x": 6, "w": 2, "delay": 0.2 },
+    { "type": "moving_obstacle", "x": 9, "y": -2, "amp": 2, "period": 0.8 }
+  ],
+  "hard_026": [
+    { "type": "ground", "x": 0, "w": 5 },
+    { "type": "spike_low", "x": 6 },
+    { "type": "spike_low", "x": 7 },
+    { "type": "spike_high", "x": 8 },
+    { "type": "coin_wave", "x": 6, "y": -3, "n": 5, "amp": 1.5 }
+  ]
+}

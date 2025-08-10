@@ -1,0 +1,27 @@
+{
+  "game": { "tickRate": 60, "gravity": 2200, "baseSpeed": 320, "speedGainPerSec": 6, "maxSpeed": 640 },
+  "player": { "hitbox": { "w": 28, "h": 42 }, "jump": { "vy0": -720, "airControl": 0.15 } },
+  "score": { "distanceUnit": 1.0, "coin": 10, "comboMultiplierPerTier": 0.2, "graceOnBuff": 0.2 },
+  "powerups": {
+    "shield": { "duration": 8, "keepCombo": true },
+    "dash": { "duration": 2.0, "speedBoost": 1.5, "invincible": true, "breakObstacles": true },
+    "magnet": { "radius": 180, "duration": 6 },
+    "timewarp": { "duration": 3.0, "timeScale": 0.5 },
+    "doublejump": { "duration": 10.0, "charges": 1, "refreshOnLand": true },
+    "giant": { "duration": 4.0, "scale": 1.5, "lowObstaclesIgnore": true }
+  },
+  "spawn": {
+    "patternIntervalSec": { "start": 2.6, "end": 2.2, "untilSec": 150, "min": 2.0 },
+    "weightsTimeline": [
+      { "untilSec": 90, "easy": 0.65, "mid": 0.30, "hard": 0.05 },
+      { "untilSec": 180, "easy": 0.45, "mid": 0.40, "hard": 0.15 },
+      { "untilSec": 9999,"easy": 0.30, "mid": 0.45, "hard": 0.25 }
+    ],
+    "spikeWindow": { "everySec": 40, "durationSec": 5, "hardBonus": 0.15, "hardCap": 0.6, "recoveryEasyBonus": 0.10, "recoverySec": 10 }
+  },
+  "adaptive": {
+    "recentHitWindowSec": 20, "hitThreshold": 2,
+    "postHitDurationSec": 15, "easeUp": { "hard": -0.10, "easy": 0.10 },
+    "comboWindowSec": 30, "postComboDurationSec": 10, "spiceUp": { "hard": 0.08, "coinBonusPct": 10 }
+  }
+}
